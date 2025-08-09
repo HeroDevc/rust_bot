@@ -6,6 +6,8 @@ I'm still learning rust and didn't include all features.
 
 If you want any new commands, open an issue.
 
+Leave a star ⭐
+
 ### Features
 - Anti afk
 - commands like: !kills, !playtime...
@@ -236,4 +238,5 @@ CREATE TABLE faqmsgs (
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
     server TEXT NOT NULL
 );
+
 ```
