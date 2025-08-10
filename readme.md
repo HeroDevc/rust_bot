@@ -6,8 +6,6 @@ I'm still learning rust and didn't include all features.
 
 If you want any new commands, open an issue.
 
-Leave a star ⭐
-
 ### Features
 - Anti afk
 - commands like: !kills, !playtime...
@@ -86,6 +84,7 @@ Leave a star ⭐
 | report | Report a player | !report Steve Cheating |
 | quote | Get a random message a player has sent | !quote Steve |
 | tps | Calculates tps (ticks per second) | !tps |
+| task | Get a random task to complete | !task |
 
 ### Database Schema
 "seen" table:
@@ -238,5 +237,4 @@ CREATE TABLE faqmsgs (
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
     server TEXT NOT NULL
 );
-
 ```
