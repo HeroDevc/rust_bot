@@ -3,8 +3,8 @@
     "max_connections": 5,
     "max_message_len": 128,
     "nwords": {
-        "hard": ["nigger"],
-        "soft": ["nigga"]
+        "hard": [""],
+        "soft": [""]
     },
     "excluded_entities": ["bee", "cave spider", "dolphin", "enderman", "goat", "iron golem", "llama", "panda", "piglin", "polar bear", "skeleton horse", "spider", "trader llama", "wolf", "zombified piglin", "blaze", "creeper", "drowned", "elder guardian", "endermite", "evoker", "ghast", "guardian", "hoglin", "husk", "magma cube", "phantom", "piglin brute", "pillager", "ravager", "shulker", "silverfish", "skeleton", "slime", "stray", "vex", "vindicator", "warden", "witch", "wither skeleton", "zoglin", "zombie", "zombie villager", "wither", "ender dragon", "chicken jockey", "hoglin jockey", "ravager jockey", "skeleton horseman", "spider jockey", "strider jockey", "pigman", "[Intentional", "[Intentional Game Design]", "end crystal", "a", "[intentional", "<namedentity>", "magic", "cave", "a", "an", "ender", "elder", "zombified", "iron", "polar", "trader", "magma", "chicken", "strider", "breeze"],
     "illegal_characters_in_username": ["<", ">", ":"],
