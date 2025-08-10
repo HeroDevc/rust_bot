@@ -36,7 +36,7 @@ fn match_first_letter(letter_to_match: String, text: &String) -> Result<bool, Ma
 }
 
 // set a server ip or name, whatever you want
-const SERVER: &str = "";
+const SERVER: &str = "5b5t";
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
@@ -2128,6 +2128,12 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 
                     if args[0].to_lowercase().starts_with("task") {
                         let msg = commands::task::task();
+
+                        send_msg(&bot, msg, &state);
+                    }
+
+                    if args[0].to_lowercase().starts_with("bible") {
+                        let msg = commands::bible::random_verse();
 
                         send_msg(&bot, msg, &state);
                     }

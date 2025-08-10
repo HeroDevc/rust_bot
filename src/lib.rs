@@ -36,6 +36,7 @@ pub mod commands {
     pub mod askgod;
     pub mod motd;
     pub mod task;
+    pub mod bible;
 }
 
 pub mod database;
