@@ -33,6 +33,9 @@ pub mod commands {
     pub mod setlm;
     pub mod remlm;
     pub mod quote;
+    pub mod askgod;
+    pub mod motd;
+    pub mod task;
 }
 
 pub mod database;
