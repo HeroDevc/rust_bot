@@ -36,7 +36,7 @@ fn match_first_letter(letter_to_match: String, text: &String) -> Result<bool, Ma
 }
 
 // set a server ip or name, whatever you want
-const SERVER: &str = "5b5t";
+const SERVER: &str = "";
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
