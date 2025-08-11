@@ -1993,6 +1993,36 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 
                         send_msg(&bot, msg, &state);
                     }
+                    
+                    if args[0].to_lowercase().starts_with("uuid") {
+                        if args.len() > 1 {
+                            let uuid = bot.player_uuid_by_username(args[1]);
+
+                            match uuid {
+                                Some(v) => {
+                                    let msg = format!("{}: {}", args[1], v);
+
+                                    send_msg(&bot, msg, &state);
+                                },
+                                None => {
+                                    send_msg(&bot, "Failed to get uuid".to_string(), &state);
+                                }
+                            }
+                        } else {
+                            let uuid = bot.player_uuid_by_username(&name);
+
+                            match uuid {
+                                Some(v) => {
+                                    let msg = format!("{}: {}", &name, v);
+
+                                    send_msg(&bot, msg, &state);
+                                },
+                                None => {
+                                    send_msg(&bot, "Failed to get uuid".to_string(), &state);
+                                }
+                            }
+                        }
+                    }
 
                     if args[0].to_lowercase().starts_with("close") {
                         let owner = state.config.lock().clone().owner;
