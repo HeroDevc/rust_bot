@@ -2024,6 +2024,28 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                         }
                     }
 
+                    if args[0].to_lowercase().starts_with("ip") || args[0].to_lowercase().starts_with("dox") {
+                        if args.len() > 1 {
+                            let rand_ip_1 = rng().random_range(1..=255);
+                            let rand_ip_2 = rng().random_range(1..=255);
+                            let rand_ip_3 = rng().random_range(1..=255);
+                            let rand_ip_4 = rng().random_range(1..=255);
+
+                            let ip = format!("{}.{}.{}.{}", rand_ip_1, rand_ip_2, rand_ip_3, rand_ip_4);
+
+                            let msg = format!("{}: {}", args[1], ip);
+                        } else {
+                            let rand_ip_1 = rng().random_range(1..=255);
+                            let rand_ip_2 = rng().random_range(1..=255);
+                            let rand_ip_3 = rng().random_range(1..=255);
+                            let rand_ip_4 = rng().random_range(1..=255);
+
+                            let ip = format!("{}.{}.{}.{}", rand_ip_1, rand_ip_2, rand_ip_3, rand_ip_4);
+
+                            let msg = format!("{}: {}", &name, ip);
+                        }
+                    }
+
                     if args[0].to_lowercase().starts_with("close") {
                         let owner = state.config.lock().clone().owner;
 
