@@ -102,7 +102,7 @@ pub struct State {
     pub ticks_count: Arc<Mutex<u64>>,
     pub bot_join_time: Arc<Mutex<Option<SystemTime>>>,
     // welcome message
-    pub time_since_last_wm: Arc<Mutex<Option<SystemTime>>>
+    pub time_since_last_wm: Arc<Mutex<Option<SystemTime>>>,
 }
 
 fn get_conf() -> Result<Conf, String> {
@@ -450,26 +450,13 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 
                             db_update_chatcount(&name, SERVER.to_string(), pg_conn).await;
                         },
-                        None => {
-                            send_msg(&bot, "Failed to connect to database".to_string(), &state);
-                        }
+                        None => {}
                     }
 
-                    let mut hard_nword_vec: Vec<String> = Vec::new();
-                    let mut soft_nword_vec: Vec<String> = Vec::new();
+                    let nword_val = state.config.lock().nwords.clone();
 
-                    let nword_val = state.config.lock().clone();
-
-                    let hard_w = nword_val.nwords.hard;
-                    let soft_w = nword_val.nwords.soft;
-
-                    for hard in hard_w {
-                        hard_nword_vec.push(hard.to_string());
-                    }
-
-                    for soft in soft_w {
-                        soft_nword_vec.push(soft.to_string());
-                    }
+                    let hard_nword_vec = nword_val.hard;
+                    let soft_nword_vec = nword_val.soft;
 
                     if hard_nword_vec.len() > 0 {
                         for hard_nword in hard_nword_vec {
