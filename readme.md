@@ -15,6 +15,7 @@ Leave a star ⭐
 ### To Do
 - [ ] Add discord support (commands, live chat, etc.)
 - [ ] Clean up code
+- [ ] Query by uuid not username
 
 ### Commands
 | Command | Description | Example |
@@ -88,6 +89,7 @@ Leave a star ⭐
 | tps | Calculates tps (ticks per second) | !tps |
 | task | Get a random task to complete | !task |
 | bible | Get a random bible verse | !bible |
+| uuid | Get player's uuid | !uuid Steve |
 
 ### Database Schema
 "seen" table:
@@ -242,4 +244,5 @@ CREATE TABLE faqmsgs (
 );
 
 ```
+
 
