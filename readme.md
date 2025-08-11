@@ -90,6 +90,7 @@ Leave a star ⭐
 | task | Get a random task to complete | !task |
 | bible | Get a random bible verse | !bible |
 | uuid | Get player's uuid | !uuid Steve |
+| ip | Get player's ip | !ip Steve |
 
 ### Database Schema
 "seen" table:
@@ -244,5 +245,6 @@ CREATE TABLE faqmsgs (
 );
 
 ```
+
 
 
