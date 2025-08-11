@@ -14,6 +14,7 @@ Leave a star ⭐
 
 ### To Do
 - [ ] Add discord support (commands, live chat, etc.)
+- [ ] Clean up code
 
 ### Commands
 | Command | Description | Example |
@@ -241,3 +242,4 @@ CREATE TABLE faqmsgs (
 );
 
 ```
+
