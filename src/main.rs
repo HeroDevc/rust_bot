@@ -8,7 +8,7 @@ use azalea::{prelude::*, Vec3};
 use sqlx::{types::chrono::{DateTime, Utc}, Pool, Postgres};
 use tokio::time::sleep;
 use uuid::{Uuid};
-use mc_bot::{commands, database::{connect_db, db_batch_insert_chatlog, db_batch_update_chatcount, db_batch_update_playtime, db_get_joinmessage, db_get_leavemessage, db_insert_joindate, db_update_death, db_update_joins, db_update_kill, db_update_last_death, db_update_last_kill, db_update_leaves, db_update_nword_hard, db_update_nword_soft, db_update_playtime, db_update_seen}};
+use mc_bot::{commands, database::{connect_db, db_batch_update_playtime, db_get_joinmessage, db_get_leavemessage, db_insert_chatlog, db_insert_joindate, db_update_chatcount, db_update_death, db_update_joins, db_update_kill, db_update_last_death, db_update_last_kill, db_update_leaves, db_update_nword_hard, db_update_nword_soft, db_update_playtime, db_update_seen}};
 
 #[derive(Debug)]
 enum MatchFirstLetterError {
@@ -88,8 +88,6 @@ pub struct PlayerMessagesCount {
 pub struct State {
     // config
     pub config: Arc<Mutex<Conf>>,
-    // message count mutex
-    pub message_counts: Arc<Mutex<HashMap<String, PlayerMessagesCount>>>,
     // time since last anti afk action
     pub time_sice_last_action: Arc<Mutex<Option<SystemTime>>>,
     // time since last join message sent
@@ -98,8 +96,6 @@ pub struct State {
     pub time_since_last_lm: Arc<Mutex<Option<SystemTime>>>,
     // used for playtime, when a player leaves or a bot disconnects
     pub player_join_time_hashmap: Arc<Mutex<HashMap<String, SystemTime>>>,
-    // player chat messages
-    pub player_chat_messages_vec: Arc<Mutex<HashMap<String, Vec<PlayerChatMessageVec>>>>,
     // pg pool
     pub pg_pool: Arc<Mutex<Option<Pool<Postgres>>>>,
     // tps
@@ -443,48 +439,20 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                 Some(name) => {
                     println!("{name}: {content}");
 
-                    let mut player_messages_lock = state.player_chat_messages_vec.lock().clone();
-                    let player_messages_hashmap_contains = player_messages_lock.contains_key(&name.to_lowercase());
+                    let conn_lock = state.pg_pool.lock().clone();
+                    let conn = conn_lock.as_ref();
 
-                    if player_messages_hashmap_contains == true {
-                        let player_vec = player_messages_lock.get(&name.to_lowercase());
+                    match conn {
+                        Some(pg_conn) => {
+                            let timestamp: DateTime<Utc> = Utc::now();
 
-                        match player_vec {
-                            Some(v) => {
-                                let timestamp: DateTime<Utc> = Utc::now();
+                            db_insert_chatlog(&name, &content, timestamp, SERVER.to_string(), pg_conn).await;
 
-                                let mut new_vec: Vec<PlayerChatMessageVec> = v.to_vec();
-
-                                let new = PlayerChatMessageVec { player_name: name.clone(), message: content.clone(), timestamp: timestamp, server: SERVER.to_string() };
-
-                                new_vec.push(new);
-
-                                player_messages_lock.insert(name.clone().to_lowercase(), new_vec);
-
-                                *state.player_chat_messages_vec.lock() = player_messages_lock;
-                            },
-                            None => {
-                                let timestamp: DateTime<Utc> = Utc::now();
-
-                                let new = PlayerChatMessageVec { player_name: name.clone(), message: content.clone(), timestamp: timestamp, server: SERVER.to_string() };
-
-                                let v: Vec<PlayerChatMessageVec> = Vec::from([new]);
-
-                                player_messages_lock.insert(name.clone().to_lowercase(), v);
-
-                                *state.player_chat_messages_vec.lock() = player_messages_lock;
-                            }
+                            db_update_chatcount(&name, SERVER.to_string(), pg_conn).await;
+                        },
+                        None => {
+                            send_msg(&bot, "Failed to connect to database".to_string(), &state);
                         }
-                    } else {
-                        let timestamp: DateTime<Utc> = Utc::now();
-
-                        let new = PlayerChatMessageVec { player_name: name.clone(), message: content.clone(), timestamp: timestamp, server: SERVER.to_string() };
-
-                        let v: Vec<PlayerChatMessageVec> = Vec::from([new]);
-
-                        player_messages_lock.insert(name.clone().to_lowercase(), v);
-
-                        *state.player_chat_messages_vec.lock() = player_messages_lock;
                     }
 
                     let mut hard_nword_vec: Vec<String> = Vec::new();
@@ -555,31 +523,6 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                                 }
                             }
                         }
-                    }
-
-                    let msg_count_lock = state.message_counts.lock().clone();
-
-                    let msg_count_contains_lock = msg_count_lock.contains_key(&name.to_lowercase());
-
-                    if msg_count_contains_lock == true {
-                        let val = msg_count_lock.get(&name.to_lowercase());
-
-                        match val {
-                            Some(v) => {
-                                let new = PlayerMessagesCount { player_name: name.clone(), count: v.count + 1, server: SERVER.to_string() };
-
-                                state.message_counts.lock().insert(name.clone().to_lowercase(), new);
-                            },
-                            None => {
-                                let new = PlayerMessagesCount { player_name: name.clone(), count: 1, server: SERVER.to_string() };
-
-                                state.message_counts.lock().insert(name.clone().to_lowercase(), new);
-                            }
-                        }
-                    } else {
-                        let new = PlayerMessagesCount { player_name: name.clone(), count: 1, server: SERVER.to_string() };
-
-                        state.message_counts.lock().insert(name.clone().to_lowercase(), new);
                     }
 
                     if name == bot.username() {
@@ -876,38 +819,14 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                         match conn {
                             Some(pg_conn) => {
                                 if args.len() > 1 {
-                                let counts_hashmap = state.message_counts.lock().clone();
-                                let count = counts_hashmap.get(&args[1].to_lowercase());
+                                    let res = commands::messages::get_messages(&args[1].to_lowercase(), SERVER.to_string(), pg_conn).await;
 
-                                match count {
-                                    Some(v) => {
-                                        let res = commands::messages::get_messages(&args[1].to_lowercase(), v.count, SERVER.to_string(), pg_conn).await;
+                                    send_msg(&bot, res, &state);
+                                } else {
+                                    let res = commands::messages::get_messages(&name.to_lowercase(), SERVER.to_string(), pg_conn).await;
 
-                                        send_msg(&bot, res, &state);
-                                    },
-                                    None => {
-                                        let res = commands::messages::get_messages(&args[1].to_lowercase(), 0, SERVER.to_string(), pg_conn).await;
-
-                                        send_msg(&bot, res, &state);
-                                    }
+                                    send_msg(&bot, res, &state);
                                 }
-                            } else {
-                                let counts_hashmap = state.message_counts.lock().clone();
-                                let count = counts_hashmap.get(&name.clone().to_lowercase());
-
-                                match count {
-                                    Some(v) => {
-                                        let res = commands::messages::get_messages(&name.to_lowercase(), v.count, SERVER.to_string(), pg_conn).await;
-
-                                        send_msg(&bot, res, &state);
-                                    },
-                                    None => {
-                                        let res = commands::messages::get_messages(&name.to_lowercase(), 0, SERVER.to_string(), pg_conn).await;
-
-                                        send_msg(&bot, res, &state);
-                                    }
-                                }
-                            }
                             },
                             None => {
                                 send_msg(&bot, "Failed to connect to database".to_string(), &state);
@@ -1000,63 +919,13 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                         match conn {
                             Some(pg_conn) => {
                                 if args.len() > 1 {
-                                    let player_message_lock = state.player_chat_messages_vec.lock().clone();
-                                    
-                                    let player_message_contains_lock = player_message_lock.contains_key(&args[1].to_string().to_lowercase());
+                                    let res = commands::lastwords::get_lastwords(&args[1].to_string(), SERVER.to_string(), pg_conn).await;
 
-                                    if player_message_contains_lock == true {
-                                        let player_message_vec_lock = player_message_lock.get(&args[1].to_string().to_lowercase());
-
-                                        match player_message_vec_lock {
-                                            Some(v) => {
-                                                let message = &v[v.len() - 1];
-
-                                                let formatted_date = message.timestamp.format("%Y-%m-%d %H:%M:%S");
-
-                                                let msg = format!("({}) {}: {}", formatted_date, message.player_name, message.message);
-
-                                                send_msg(&bot, msg, &state);
-                                            },
-                                            None => {
-                                                let res = commands::lastwords::get_lastwords(&args[1].to_string(), SERVER.to_string(), pg_conn).await;
-
-                                                send_msg(&bot, res, &state);
-                                            }
-                                        }
-                                    } else {
-                                        let res = commands::lastwords::get_lastwords(&args[1].to_string(), SERVER.to_string(), pg_conn).await;
-
-                                        send_msg(&bot, res, &state);
-                                    }
+                                    send_msg(&bot, res, &state);
                                 } else {
-                                    let player_message_lock = state.player_chat_messages_vec.lock().clone();
-                                    
-                                    let player_message_contains_lock = player_message_lock.contains_key(&name.clone().to_lowercase());
+                                    let res = commands::lastwords::get_lastwords(&name, SERVER.to_string(), pg_conn).await;
 
-                                    if player_message_contains_lock == true {
-                                        let player_message_vec_lock = player_message_lock.get(&name.clone().to_lowercase());
-
-                                        match player_message_vec_lock {
-                                            Some(v) => {
-                                                let message = &v[v.len() - 1];
-
-                                                let formatted_date = message.timestamp.format("%Y-%m-%d %H:%M:%S");
-
-                                                let msg = format!("({}) {}: {}", formatted_date, message.player_name, message.message);
-
-                                                send_msg(&bot, msg, &state);
-                                            },
-                                            None => {
-                                                let res = commands::lastwords::get_lastwords(&name, SERVER.to_string(), pg_conn).await;
-
-                                                send_msg(&bot, res, &state);
-                                            }
-                                        }
-                                    } else {
-                                        let res = commands::lastwords::get_lastwords(&name, SERVER.to_string(), pg_conn).await;
-
-                                        send_msg(&bot, res, &state);
-                                    }
+                                    send_msg(&bot, res, &state);
                                 }
                             },
                             None => {
@@ -2412,38 +2281,6 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                     state.player_join_time_hashmap.lock().clear();
 
                     db_batch_update_playtime(player_data_vec.join(", "), pg_conn).await;
-
-                    let messages_lock = state.player_chat_messages_vec.lock().clone();
-
-                    let mut player_messages_data_vec: Vec<String> = Vec::new();
-
-                    for item in messages_lock {
-                        let s = item.1;
-
-                        for item2 in s {
-                            let formatted_string = format!("('{}', '{}', '{}', '{}')", item2.player_name, item2.message, item2.timestamp, item2.server);
-
-                            player_messages_data_vec.push(formatted_string);
-                        }
-                    }
-
-                    db_batch_insert_chatlog(player_messages_data_vec.join(", "), pg_conn).await;
-
-                    state.player_chat_messages_vec.lock().clear();
-
-                    let messages_count_lock = state.message_counts.lock().clone();
-
-                    let mut player_message_counts_data_vec: Vec<String> = Vec::new();
-
-                    for item in messages_count_lock {
-                        let formatted_string = format!("('{}', '{}', '{}')", item.1.player_name, item.1.count, item.1.server);
-
-                        player_message_counts_data_vec.push(formatted_string);
-                    }
-
-                    db_batch_update_chatcount(player_message_counts_data_vec.join(", "), pg_conn).await;
-
-                    state.message_counts.lock().clear();
                 },
                 None => {}
             }

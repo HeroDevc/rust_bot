@@ -1302,32 +1302,35 @@ pub async fn db_get_quote(player: String, server: String, conn: &Pool<Postgres>)
     }
 }
 
-pub async fn db_batch_insert_chatlog(data: String, conn: &Pool<Postgres>) {
-    let query = format!("INSERT INTO chatlogs (player_name, message, timestamp, server) VALUES {}", data);
-
-    let res = sqlx::query(&query)
+pub async fn db_insert_chatlog(player: &String, message: &String, timestamp: DateTime<Utc>, server: String, conn: &Pool<Postgres>) {
+    let res = sqlx::query("INSERT INTO chatlogs (player_name, message, timestamp, server) VALUES ($1, $2, $3, $4)")
+        .bind(player)
+        .bind(message)
+        .bind(timestamp)
+        .bind(server)
         .execute(conn)
         .await;
 
     match res {
-        Ok(_) => {},
+        Ok(_v) => {},
         Err(e) => {
-            println!("{}", e);
+            println!("[Insert chatlog function] {}", e);
         }
     }
 }
 
-pub async fn db_batch_update_chatcount(data: String, conn: &Pool<Postgres>) {
-    let query = format!("INSERT INTO chatcount (player_name, count, server) VALUES {} ON CONFLICT (player_name, server) DO UPDATE SET count = chatcount.count + EXCLUDED.count", data);
-
-    let res = sqlx::query(&query)
+pub async fn db_update_chatcount(player: &String, server: String, conn: &Pool<Postgres>) {
+    let res = sqlx::query("INSERT INTO chatcount (player_name, count, server) VALUES ($1, $2, $3) ON CONFLICT (player_name, server) DO UPDATE SET count = chatcount.count + EXCLUDED.count")
+        .bind(player)
+        .bind(1)
+        .bind(server)
         .execute(conn)
         .await;
 
     match res {
-        Ok(_) => {},
+        Ok(_v) => {},
         Err(e) => {
-            println!("[Batch update chatcount function] {}", e);
+            println!("[Update chatcount function] {}", e);
         }
     }
 }
