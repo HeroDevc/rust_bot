@@ -19,7 +19,7 @@ pub fn get_worst_ping(tablist: HashMap<Uuid, PlayerInfo>) -> String {
         return msg
     }
 
-    let msg = format!("Player with the highest ping is {wp_player} with {wp_ping}ms");
+    let msg = format!("{wp_player}: {wp_ping}ms");
 
     msg
 }

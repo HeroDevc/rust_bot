@@ -19,7 +19,7 @@ pub fn get_best_ping(tablist: HashMap<Uuid, PlayerInfo>) -> String {
         return msg
     }
 
-    let msg = format!("Player with the lowest ping is {bp_player} with {bp_ping}ms");
+    let msg = format!("{bp_player}: {bp_ping}ms");
 
     msg
 }
