@@ -2071,13 +2071,6 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                                     *state.time_since_last_wm.lock() = Some(SystemTime::now());
                                 }
                             }
-
-                            // let messages = state.config.lock().clone().welcome_messages;
-                            // let rand_message = &messages[rng().random_range(0..=messages.len() - 1)];
-
-                            // let msg = rand_message.replace("$NAME", &e.profile.name);
-
-                            // send_msg(&bot, msg, &state);
                         }
                     }
 
@@ -2167,9 +2160,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 
                             db_update_playtime(e.profile.name.clone(), secs, SERVER.to_string(), pg_conn).await;
 
-                            let mut lock2 = state.player_join_time_hashmap.lock().clone();
-
-                            lock2.remove(&e.profile.name);
+                            state.player_join_time_hashmap.lock().remove(&e.profile.name);
                         },
                         None => {}
                     }
