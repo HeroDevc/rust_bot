@@ -14,7 +14,6 @@ Leave a star ⭐
 
 ### To Do
 - [ ] Add discord support (commands, live chat, etc.)
-- [ ] Update playtime at an interval or by an event, not when bot disconnects
 
 ### Commands
 | Command | Description | Example |
@@ -240,4 +239,5 @@ CREATE TABLE faqmsgs (
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
     server TEXT NOT NULL
 );
+
 ```
