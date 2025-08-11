@@ -2047,7 +2047,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                                             let seconds = val.as_secs();
 
                                             if seconds > 7 {
-                                                let messages = state.config.lock().clone().welcome_messages;
+                                                let messages = state.config.lock().welcome_messages.clone();
                                                 let rand_message = &messages[rng().random_range(0..=messages.len() - 1)];
 
                                                 let msg = rand_message.replace("$NAME", &e.profile.name);
@@ -2061,7 +2061,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                                     }
                                 },
                                 None => {
-                                    let messages = state.config.lock().clone().welcome_messages;
+                                    let messages = state.config.lock().welcome_messages.clone();
                                     let rand_message = &messages[rng().random_range(0..=messages.len() - 1)];
 
                                     let msg = rand_message.replace("$NAME", &e.profile.name);
