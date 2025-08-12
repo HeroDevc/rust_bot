@@ -2034,6 +2034,8 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                             let ip = format!("{}.{}.{}.{}", rand_ip_1, rand_ip_2, rand_ip_3, rand_ip_4);
 
                             let msg = format!("{}: {}", args[1], ip);
+
+                            send_msg(&bot, msg, &state);
                         } else {
                             let rand_ip_1 = rng().random_range(1..=255);
                             let rand_ip_2 = rng().random_range(1..=255);
@@ -2043,6 +2045,8 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                             let ip = format!("{}.{}.{}.{}", rand_ip_1, rand_ip_2, rand_ip_3, rand_ip_4);
 
                             let msg = format!("{}: {}", &name, ip);
+
+                            send_msg(&bot, msg, &state);
                         }
                     }
 
