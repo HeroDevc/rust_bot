@@ -61,7 +61,10 @@ async fn main() {
         ..Default::default()
     };
 
+    let dur = Duration::new(10, 0);
+
     ClientBuilder::new()
+        .reconnect_after(dur)
         .set_handler(handle)
         .set_state(state)
         .start(account, "localhost")
@@ -132,9 +135,6 @@ fn get_conf() -> Result<Conf, String> {
                                     return Err(e.to_string())
                                 }
                             }
-                        } else {
-                            // idk
-                            // return Err("File not found".to_string())
                         }
                     },
                     Err(e) => {
@@ -157,6 +157,7 @@ fn get_conf() -> Result<Conf, String> {
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Conf {
+    prefix: String,
     owner: String,
     max_connections: u32,
     max_message_len: i32,
@@ -252,6 +253,19 @@ fn send_msg(bot: &Client, message: String, state: &State) {
 
         bot.chat(&msg);
     }
+}
+
+fn remove_first_n_chars(text: &String, n: i32) -> String {
+    let mut collected: Vec<&str> = text.split("").collect();
+
+    let mut i = 0;
+    while i < n + 1 {
+        collected.remove(0);
+
+        i = i + 1;
+    }
+
+    collected.concat()
 }
 
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
@@ -522,8 +536,9 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                         return Ok(());
                     }
 
-                    let t = String::from("!");
-                    let flm = match_first_letter(t, &content);
+                    let prefix = state.config.lock().prefix.clone();
+
+                    let flm = match_first_letter(prefix.clone(), &content);
 
                     let v = flm.expect("Expected bool!");
 
@@ -531,8 +546,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
                         return Ok(());
                     }
 
-                    let mut s_con = String::from(&content);
-                    s_con.remove(0);
+                    let s_con = remove_first_n_chars(&content, prefix.len() as i32);
 
                     let col = s_con.split(" ");
                     let args: Vec<&str> = col.collect();
@@ -1993,7 +2007,7 @@ async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
 
                         send_msg(&bot, msg, &state);
                     }
-                    
+
                     if args[0].to_lowercase().starts_with("uuid") {
                         if args.len() > 1 {
                             let uuid = bot.player_uuid_by_username(args[1]);
