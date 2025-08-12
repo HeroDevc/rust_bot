@@ -271,7 +271,7 @@ fn remove_first_n_chars(text: &String, n: i32) -> String {
 async fn handle(bot: Client, event: Event, state: State) -> anyhow::Result<()> {
     match event {
         Event::Chat(e) => {
-            println!("[MSGSTR] {}", e.message().to_ansi());
+            println!("{}", e.message().to_ansi());
 
             let message = e.message().to_string();
 
