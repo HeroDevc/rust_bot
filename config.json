@@ -1,4 +1,5 @@
 {
+    "prefix": "!",
     "owner": "HeroDevc",
     "max_connections": 5,
     "max_message_len": 128,
@@ -21,4 +22,5 @@
     "anti_afk": true,
     "send_welcome_message": true,
     "welcome_messages": ["Welcome, $NAME to a peaceful christian server."]
+
 }
